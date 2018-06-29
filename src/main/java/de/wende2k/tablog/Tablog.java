@@ -1,6 +1,10 @@
 package de.wende2k.tablog;
 
+import de.wende2k.tablog.command.TablogCommand;
+import de.wende2k.tablog.listener.PlayerItemHeldListener;
+import de.wende2k.tablog.util.FontInfo;
 import de.wende2k.tablog.util.TablistUtils;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -15,9 +19,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Plugin(name = "Tablog", version = "1.0-SNAPSHOT")
 @Author(name = "Wende2k")
@@ -26,66 +28,64 @@ import java.util.UUID;
 @Permission(name = "tablog.use", desc = "Allows the usage of Tablog", defaultValue = PermissionDefault.OP)
 public class Tablog extends JavaPlugin {
 
+    public static final int AMOUNT_OF_LINES = 25;
     private static final File LOG_FILE = new File("logs/latest.log");
-    private static final int AMOUNT_OF_LINES = 25;
-    private static final String PLACEHOLDER = "§r\n§r\n§r\n§7\n";
 
+    private static final String PLACEHOLDER_HEAD = "§r\n§r\n§r\n§aScroll up §b§l⇡§a or down §b§l⇣\n§r\n§r\n§7";
+    private static final String PLACEHOLDER_FOOT = "§r\n§r\n§r\n§cTablog plugin§r\n§r\n§r\n";
+
+    @Getter private static Tablog instance;
+
+    @Getter private Map<UUID, Integer> enabledPlayers;
     private BukkitRunnable runnable;
-    private List<UUID> enabledPlayers;
 
     @Override
     public void onEnable() {
-        this.enabledPlayers = new ArrayList<>();
+        Tablog.instance = this;
+        this.enabledPlayers = new HashMap<>();
 
-        super.getCommand("tablog").setExecutor((commandSender, command, label, args) -> {
-            if (commandSender instanceof Player) {
-                UUID uuid = ((Player) commandSender).getUniqueId();
-
-                if (this.enabledPlayers.contains(uuid)) {
-                    this.enabledPlayers.remove(uuid);
-                    TablistUtils.send((Player) commandSender, "", "");
-                    commandSender.sendMessage("§7You have §cdisabled §7your Tablog.");
-
-                    if (this.enabledPlayers.size() < 1) {
-                        this.runnable.cancel();
-                        this.runnable = null;
-                    }
-                } else {
-                    if (this.runnable == null) {
-                        this.initRunnable().runTaskTimer(this, 0L, 3L);
-                    }
-                    this.enabledPlayers.add(uuid);
-                    commandSender.sendMessage("§7You have §aenabled §7your Tablog!");
-                }
-            } else {
-                commandSender.sendMessage("You must be a player to be able to use this command.");
-            }
-            return true;
-        });
+        super.getCommand("tablog").setExecutor(new TablogCommand());
+        super.getServer().getPluginManager().registerEvents(new PlayerItemHeldListener(), this);
     }
 
-    private BukkitRunnable initRunnable() {
+    public BukkitRunnable getRunnable() {
+        if (this.runnable != null) {
+            return this.runnable;
+        }
+
         return (this.runnable = new BukkitRunnable() {
             @Override
             public void run() {
-                Tablog.this.enabledPlayers.forEach(uuid -> {
+                Tablog.this.enabledPlayers.forEach((uuid, currentLine) -> {
                     Player player = Bukkit.getPlayer(uuid);
 
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    for (String line : Tablog.this.getTail(currentLine)) {
+                        while (FontInfo.getSize(line) < 490 && ((FontInfo.getSize(line) + 3) <= 490)) {
+                            line += " ";
+                        }
+                        stringBuilder.append(line
+                                .replace(line.substring(0, 10), "§8" + line.substring(0, 10) + "§7")
+                                .replace("INFO", "§eINFO§7")
+                                .replace("WARN", "§cWARN§7")).append("\n");
+                    }
+
                     if (player != null && player.isOnline()) {
-                        TablistUtils.send(player, PLACEHOLDER + Tablog.this.getTail() + PLACEHOLDER + PLACEHOLDER,
-                                "§cTablog Plugin by Wende2k");
+                        TablistUtils.send(player, PLACEHOLDER_HEAD + stringBuilder.toString()
+                                + PLACEHOLDER_FOOT, "");
                     }
                 });
             }
         });
+
     }
 
     @SneakyThrows
-    private String getTail() {
+    private String[] getTail(int line) {
         RandomAccessFile fileHandler = new RandomAccessFile(LOG_FILE, "r");
         long fileLength = fileHandler.length() - 1;
         StringBuilder sb = new StringBuilder();
-        int line = 0;
 
         for (long filePointer = fileLength; filePointer != -1; filePointer--) {
             fileHandler.seek(filePointer);
@@ -107,7 +107,8 @@ public class Tablog extends JavaPlugin {
             sb.append((char) readByte);
         }
 
-        return sb.reverse().toString();
+        fileHandler.close();
+        return sb.reverse().toString().split("\n");
     }
 
 }
