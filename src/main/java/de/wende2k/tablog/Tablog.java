@@ -5,6 +5,7 @@ import de.wende2k.tablog.listener.PlayerItemHeldListener;
 import de.wende2k.tablog.util.FontInfo;
 import de.wende2k.tablog.util.TablistUtils;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -26,6 +27,7 @@ import java.util.*;
 @Description(desc = "Allows you to shows the server log in tab.")
 @Command(name = "tablog", aliases = {"tl"}, permission = "tablog.use")
 @Permission(name = "tablog.use", desc = "Allows the usage of Tablog", defaultValue = PermissionDefault.OP)
+@Getter
 public class Tablog extends JavaPlugin {
 
     public static final int AMOUNT_OF_LINES = 25;
@@ -36,8 +38,8 @@ public class Tablog extends JavaPlugin {
 
     @Getter private static Tablog instance;
 
-    @Getter private Map<UUID, Integer> enabledPlayers;
-    private BukkitRunnable runnable;
+    private Map<UUID, Integer> enabledPlayers;
+    @Setter private BukkitRunnable runnable;
 
     @Override
     public void onEnable() {
@@ -48,7 +50,7 @@ public class Tablog extends JavaPlugin {
         super.getServer().getPluginManager().registerEvents(new PlayerItemHeldListener(), this);
     }
 
-    public BukkitRunnable getRunnable() {
+    public BukkitRunnable refreshRunnable() {
         if (this.runnable != null) {
             return this.runnable;
         }

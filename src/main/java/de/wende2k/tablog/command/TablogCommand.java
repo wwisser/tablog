@@ -28,9 +28,12 @@ public class TablogCommand implements CommandExecutor {
 
                 if (enabledPlayers.size() < 1) {
                     runnable.cancel();
+                    instance.setRunnable(null);
                 }
             } else {
-                instance.getRunnable().runTaskTimer(instance, 0L, 3L);
+                if (runnable == null) {
+                    instance.refreshRunnable().runTaskTimer(instance, 0L, 3L);
+                }
                 enabledPlayers.put(uuid, 0);
                 commandSender.sendMessage("§7You have §aenabled §7your Tablog!");
             }
