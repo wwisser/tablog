@@ -14,9 +14,10 @@ public class PlayerItemHeldListener implements Listener {
     public void onItemHeld(PlayerItemHeldEvent event) {
         Map<UUID, Integer> enabledPlayers = Tablog.getInstance().getEnabledPlayers();
         UUID uuid = event.getPlayer().getUniqueId();
-        int currentLine = enabledPlayers.get(uuid);
 
         if (enabledPlayers.containsKey(uuid)) {
+            int currentLine = enabledPlayers.get(uuid);
+
             if (event.getNewSlot() > event.getPreviousSlot()) {
                 if (currentLine < (Tablog.AMOUNT_OF_LINES - 1)) {
                     enabledPlayers.put(uuid, ++currentLine);
