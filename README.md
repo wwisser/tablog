@@ -1,15 +1,15 @@
 # Tablog
 
-[![N|Solid](http://fs1.directupload.net/images/180618/vkvo6vhb.png)](https://www.spigotmc.org/resources/tablog.58259/)
+[![N|Solid](http://fs5.directupload.net/images/180701/uly6urmp.png)](https://www.spigotmc.org/resources/tablog.58259/)
 
 Tablog allows you to scroll live through your latest server log in your tablist.
 
 ### Example
 
-[![N|Solid](http://fs5.directupload.net/images/180701/uly6urmp.png)](https://www.spigotmc.org/resources/tablog.58259/)
+[![N|Solid](https://img2.picload.org/image/dlgogdca/2018-07-01_13.31.36-min.gif)](https://www.spigotmc.org/resources/tablog.58259/)
 
 ### Commands
 > /tl (/tablog)
 
-###Permissions
+### Permissions
 > tablog.use
